@@ -1,0 +1,54 @@
+<!-- your_app/templates/your_app/stt.html -->
+{% extends 'your_app/base_generic.html' %}
+
+{% block content %}
+  <h2>Speech-to-Text</h2>
+
+  <form method="post" action="{% url 'stt' %}" class="form">
+    {% csrf_token %}
+    <button type="submit" class="btn">Start Speech Recognition</button>
+  </form>
+
+  {% if stt_success %}
+    <p>Speech-to-Text successful. Recognized text: {{ stt_text }}</p>
+  {% endif %}
+
+ <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('.form').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var resultDiv = document.createElement('div');
+      resultDiv.setAttribute('id', 'result');
+
+      fetch('/stt/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': document.querySelector('input[name=csrfmiddlewaretoken]').value
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.stt_success) {
+          resultDiv.textContent = 'Recognized Text: ' + data.stt_text;
+        } else {
+          resultDiv.textContent = 'Error: ' + data.stt_text;
+        }
+
+        // Remove the existing result div if it exists
+        var existingResultDiv = document.getElementById('result');
+        if (existingResultDiv) {
+          existingResultDiv.remove();
+        }
+
+        // Append the new result div to the body
+        document.body.appendChild(resultDiv);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  });
+</script>
+
+{% endblock %}
